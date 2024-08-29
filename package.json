@@ -4,6 +4,9 @@
   "description": "SQL template tags and fragments for PostgreSQL",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "clean": "rm -rf ./dist && rm .tsbuildinfo",
     "test": "node --require ts-node/register --test ./test/*.test.ts",
