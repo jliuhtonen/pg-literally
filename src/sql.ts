@@ -2,22 +2,16 @@ import { isSqlFragment } from "./sqlFragment"
 
 export type SqlQuery = { text: string; values: unknown[] }
 
-interface TextReplacementState {
+interface AccumulatedQueryState {
   text: string
   currentVariableIndex: number
 }
 
-const expandPlaceholdersToText = (
-  strings: readonly string[],
-  values: unknown[],
-  initialValue: TextReplacementState,
-): TextReplacementState =>
-  strings.reduce((acc, str, i) => {
-    const currentValue = values[i]
+const appendCurrentVariableToQueryFn = (numberOfQueryParts: number, queryPartValues: unknown[]) => (acc: AccumulatedQueryState, currentQueryPart: string, currentQueryPartIndex: number): AccumulatedQueryState =>  {
+    const currentValue = queryPartValues[currentQueryPartIndex]
     if (isSqlFragment(currentValue)) {
-      const { text, currentVariableIndex } = expandPlaceholdersToText(
-        currentValue.strings,
-        currentValue.values,
+      const { text: fragmentQueryText, currentVariableIndex } = currentValue.strings.reduce(
+        appendCurrentVariableToQueryFn(currentValue.strings.length, currentValue.values),
         {
           text: "",
           currentVariableIndex: acc.currentVariableIndex,
@@ -26,7 +20,7 @@ const expandPlaceholdersToText = (
 
       return {
         currentVariableIndex,
-        text: `${acc.text}${str}${text}`,
+        text: `${acc.text}${currentQueryPart}${fragmentQueryText}`,
       }
     } else if (Array.isArray(currentValue)) {
       const arrayVars = currentValue
@@ -35,20 +29,20 @@ const expandPlaceholdersToText = (
 
       return {
         currentVariableIndex: acc.currentVariableIndex + currentValue.length,
-        text: `${acc.text}${str}${arrayVars}`,
+        text: `${acc.text}${currentQueryPart}${arrayVars}`,
       }
-    } else if (i < strings.length - 1) {
+    } else if (currentQueryPartIndex < numberOfQueryParts - 1) {
       return {
         currentVariableIndex: acc.currentVariableIndex + 1,
-        text: `${acc.text}${str}$${acc.currentVariableIndex}`,
+        text: `${acc.text}${currentQueryPart}$${acc.currentVariableIndex}`,
       }
     } else {
       return {
         currentVariableIndex: acc.currentVariableIndex,
-        text: `${acc.text}${str}`,
+        text: `${acc.text}${currentQueryPart}`,
       }
     }
-  }, initialValue)
+}
 
 const expandValues = (values: unknown[]): unknown[] =>
   values.flatMap((value) => {
@@ -67,7 +61,10 @@ export const sql = (strings: TemplateStringsArray, ...values: unknown[]) => {
     currentVariableIndex: 1,
   }
 
-  const { text } = expandPlaceholdersToText(strings, values, initialValue)
+  const { text } = strings.reduce(
+    appendCurrentVariableToQueryFn(strings.length, values),
+    initialValue,
+  ) 
   const expandedValues = expandValues(values)
 
   return { text, values: expandedValues }
