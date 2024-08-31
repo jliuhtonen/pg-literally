@@ -7,16 +7,26 @@ interface AccumulatedQueryState {
   currentVariableIndex: number
 }
 
-const appendCurrentVariableToQueryFn = (numberOfQueryParts: number, queryPartValues: unknown[]) => (acc: AccumulatedQueryState, currentQueryPart: string, currentQueryPartIndex: number): AccumulatedQueryState =>  {
+const appendCurrentVariableToQueryFn =
+  (numberOfQueryParts: number, queryPartValues: unknown[]) =>
+  (
+    acc: AccumulatedQueryState,
+    currentQueryPart: string,
+    currentQueryPartIndex: number,
+  ): AccumulatedQueryState => {
     const currentValue = queryPartValues[currentQueryPartIndex]
     if (isSqlFragment(currentValue)) {
-      const { text: fragmentQueryText, currentVariableIndex } = currentValue.strings.reduce(
-        appendCurrentVariableToQueryFn(currentValue.strings.length, currentValue.values),
-        {
-          text: "",
-          currentVariableIndex: acc.currentVariableIndex,
-        },
-      )
+      const { text: fragmentQueryText, currentVariableIndex } =
+        currentValue.strings.reduce(
+          appendCurrentVariableToQueryFn(
+            currentValue.strings.length,
+            currentValue.values,
+          ),
+          {
+            text: "",
+            currentVariableIndex: acc.currentVariableIndex,
+          },
+        )
 
       return {
         currentVariableIndex,
@@ -42,7 +52,7 @@ const appendCurrentVariableToQueryFn = (numberOfQueryParts: number, queryPartVal
         text: `${acc.text}${currentQueryPart}`,
       }
     }
-}
+  }
 
 const expandValues = (values: unknown[]): unknown[] =>
   values.flatMap((value) => {
@@ -64,7 +74,7 @@ export const sql = (strings: TemplateStringsArray, ...values: unknown[]) => {
   const { text } = strings.reduce(
     appendCurrentVariableToQueryFn(strings.length, values),
     initialValue,
-  ) 
+  )
   const expandedValues = expandValues(values)
 
   return { text, values: expandedValues }
