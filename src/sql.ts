@@ -15,6 +15,15 @@ const appendCurrentVariableToQueryFn =
     currentQueryPart: string,
     currentQueryPartIndex: number,
   ): AccumulatedQueryState => {
+    const isLastQueryPart = currentQueryPartIndex === numberOfQueryParts - 1
+    if (isLastQueryPart) {
+      return {
+        currentVariableIndex: acc.currentVariableIndex,
+        text: `${acc.text}${currentQueryPart}`,
+        values: acc.values,
+      }
+    }
+
     const currentValue = queryPartValues[currentQueryPartIndex]
     if (isSqlFragment(currentValue)) {
       const {
@@ -48,17 +57,11 @@ const appendCurrentVariableToQueryFn =
         text: `${acc.text}${currentQueryPart}${arrayVars}`,
         values: [...acc.values, ...currentValue],
       }
-    } else if (currentQueryPartIndex < numberOfQueryParts - 1) {
+    } else {
       return {
         currentVariableIndex: acc.currentVariableIndex + 1,
         text: `${acc.text}${currentQueryPart}$${acc.currentVariableIndex}`,
         values: [...acc.values, currentValue],
-      }
-    } else {
-      return {
-        currentVariableIndex: acc.currentVariableIndex,
-        text: `${acc.text}${currentQueryPart}`,
-        values: acc.values,
       }
     }
   }
