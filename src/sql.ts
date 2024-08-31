@@ -2,19 +2,19 @@ import { isSqlFragment } from "./sqlFragment"
 
 export type SqlQuery = { text: string; values: unknown[] }
 
-interface AccumulatedQueryState {
+interface AccumulatedQuery {
   text: string
   currentVariableIndex: number
   values: unknown[]
 }
 
-const appendCurrentVariableToQueryFn =
+const appendPartToQueryFn =
   (numberOfQueryParts: number, queryPartValues: unknown[]) =>
   (
-    acc: AccumulatedQueryState,
+    acc: AccumulatedQuery,
     currentQueryPart: string,
     currentQueryPartIndex: number,
-  ): AccumulatedQueryState => {
+  ): AccumulatedQuery => {
     const isLastQueryPart = currentQueryPartIndex === numberOfQueryParts - 1
     if (isLastQueryPart) {
       return {
@@ -31,10 +31,7 @@ const appendCurrentVariableToQueryFn =
         currentVariableIndex,
         values: fragmentValues,
       } = currentValue.strings.reduce(
-        appendCurrentVariableToQueryFn(
-          currentValue.strings.length,
-          currentValue.values,
-        ),
+        appendPartToQueryFn(currentValue.strings.length, currentValue.values),
         {
           text: "",
           currentVariableIndex: acc.currentVariableIndex,
@@ -78,7 +75,7 @@ export const sql = (strings: TemplateStringsArray, ...values: unknown[]) => {
   }
 
   const { text, values: expandedValues } = strings.reduce(
-    appendCurrentVariableToQueryFn(strings.length, values),
+    appendPartToQueryFn(strings.length, values),
     initialValue,
   )
 
