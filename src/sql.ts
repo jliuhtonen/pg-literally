@@ -4,7 +4,7 @@ export type SqlQuery = { text: string; values: unknown[] }
 
 interface AccumulatedQuery {
   text: string
-  currentVariableIndex: number
+  currentVariableNumber: number
   values: unknown[]
 }
 
@@ -18,7 +18,7 @@ const appendPartToQueryFn =
     const isLastQueryPart = currentQueryPartIndex === numberOfQueryParts - 1
     if (isLastQueryPart) {
       return {
-        currentVariableIndex: acc.currentVariableIndex,
+        currentVariableNumber: acc.currentVariableNumber,
         text: `${acc.text}${currentQueryPart}`,
         values: acc.values,
       }
@@ -28,49 +28,45 @@ const appendPartToQueryFn =
     if (isSqlFragment(currentValue)) {
       const {
         text: fragmentQueryText,
-        currentVariableIndex,
+        currentVariableNumber,
         values: fragmentValues,
       } = currentValue.strings.reduce(
         appendPartToQueryFn(currentValue.strings.length, currentValue.values),
         {
           text: "",
-          currentVariableIndex: acc.currentVariableIndex,
+          currentVariableNumber: acc.currentVariableNumber,
           values: [],
         },
       )
 
       return {
-        currentVariableIndex,
+        currentVariableNumber,
         text: `${acc.text}${currentQueryPart}${fragmentQueryText}`,
         values: [...acc.values, ...fragmentValues],
       }
     } else if (Array.isArray(currentValue)) {
       const arrayVars = currentValue
-        .map((_, i) => `$${acc.currentVariableIndex + i}`)
+        .map((_, i) => `$${acc.currentVariableNumber + i}`)
         .join(", ")
 
       return {
-        currentVariableIndex: acc.currentVariableIndex + currentValue.length,
+        currentVariableNumber: acc.currentVariableNumber + currentValue.length,
         text: `${acc.text}${currentQueryPart}${arrayVars}`,
         values: [...acc.values, ...currentValue],
       }
     } else {
       return {
-        currentVariableIndex: acc.currentVariableIndex + 1,
-        text: `${acc.text}${currentQueryPart}$${acc.currentVariableIndex}`,
+        currentVariableNumber: acc.currentVariableNumber + 1,
+        text: `${acc.text}${currentQueryPart}$${acc.currentVariableNumber}`,
         values: [...acc.values, currentValue],
       }
     }
   }
 
 export const sql = (strings: TemplateStringsArray, ...values: unknown[]) => {
-  const initialValue: {
-    text: string
-    currentVariableIndex: number
-    values: unknown[]
-  } = {
+  const initialValue: AccumulatedQuery = {
     text: "",
-    currentVariableIndex: 1,
+    currentVariableNumber: 1,
     values: [],
   }
 
