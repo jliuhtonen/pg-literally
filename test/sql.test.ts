@@ -77,7 +77,7 @@ describe("sql", () => {
     assert.deepEqual(queryResult.values, ["Alice", "alice@company.com"])
   })
 
-  it("supports multi-line inserts", () => {
+  it("supports joining sql fragments with proper output", () => {
     const result = sql`
       INSERT INTO customers (name, address)
       VALUES ${[
