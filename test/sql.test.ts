@@ -1,6 +1,6 @@
 import { describe, it } from "node:test"
 import assert from "node:assert"
-import { sql } from "../src"
+import { joinSqlFragments, sql } from "../src"
 import { sqlFragment } from "../src"
 
 const normalizeWhitespace = (sql: string) => sql.replace(/\s+/g, " ").trim()
@@ -75,5 +75,21 @@ describe("sql", () => {
       "SELECT * FROM projects p LATERAL JOIN (SELECT * FROM users WHERE id = p.id AND name = $1 AND email = $2)",
     )
     assert.deepEqual(queryResult.values, ["Alice", "alice@company.com"])
+  })
+
+  it("supports multi-line inserts", () => {
+    const result = sql`
+      INSERT INTO customers (name, address)
+      VALUES ${[
+        sqlFragment`(${["Apple", "1 Infinite Loop"]})`,
+        sqlFragment`(${["Google", "1600 Amphitheatre Parkway"]})`,
+        sqlFragment`(${["Microsodt", "One Microsoft Way"]})`,
+        sqlFragment`(${["Amazon", "410 Terry Ave. North"]})`,
+      ].reduce((a, b) => joinSqlFragments(a, b, ",\n"))}
+      `
+    assert.equal(
+      normalizeWhitespace(result.text),
+      "INSERT INTO customers (name, address) VALUES ($1, $2), ($3, $4), ($5, $6), ($7, $8)",
+    )
   })
 })

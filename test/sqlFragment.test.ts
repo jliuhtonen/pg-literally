@@ -18,9 +18,7 @@ describe("sqlFragment", () => {
     const joined = joinSqlFragments(fragment1, fragment2)
     assert.deepEqual(joined.strings, [
       "SELECT * FROM albums WHERE year = ",
-      "",
-      " ",
-      "ORDER BY year LIMIT ",
+      "\nORDER BY year LIMIT ",
       "",
     ])
     assert.deepEqual(joined.values, [1999, 5])

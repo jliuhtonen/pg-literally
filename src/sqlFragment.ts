@@ -21,12 +21,34 @@ export const sqlFragment = (
   values,
 })
 
+const joinStringArrays = (
+  a: readonly string[],
+  b: readonly string[],
+  separator: string,
+): readonly string[] => {
+  if (a.length === 0) {
+    return b
+  }
+  if (b.length === 0) {
+    return a
+  }
+  const aWithoutLast = a.slice(0, a.length - 1)
+  const lastAString = a[a.length - 1]
+  const firstBString = b[0]
+  const restBString = b.slice(1)
+
+  return aWithoutLast.concat(
+    `${lastAString}${separator}${firstBString}`,
+    restBString,
+  )
+}
+
 export const joinSqlFragments = (
   a: SqlFragment,
   b: SqlFragment,
-  separator = " ",
+  separator = "\n",
 ): SqlFragment => ({
   __brand: "SqlFragment",
-  strings: a.strings.concat(separator).concat(b.strings),
+  strings: joinStringArrays(a.strings, b.strings, separator),
   values: a.values.concat(b.values),
 })
