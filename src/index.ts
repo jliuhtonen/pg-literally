@@ -1,2 +1,7 @@
 export { sql, SqlQuery } from "./sql"
-export { sqlFragment, joinSqlFragments, SqlFragment } from "./sqlFragment"
+export {
+  sqlFragment,
+  joinSqlFragments,
+  combineFragments,
+  SqlFragment,
+} from "./sqlFragment"

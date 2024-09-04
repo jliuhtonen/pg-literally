@@ -1,7 +1,8 @@
 import { describe, it } from "node:test"
 import assert from "node:assert"
-import { joinSqlFragments, sql } from "../src"
-import { sqlFragment } from "../src"
+import { sql } from "../src"
+import { sqlFragment as sqlF } from "../src"
+import { combineFragments } from "../src"
 
 const normalizeWhitespace = (sql: string) => sql.replace(/\s+/g, " ").trim()
 
@@ -30,7 +31,7 @@ describe("sql", () => {
   })
 
   it("supports nested sql fragments", () => {
-    const fragment = sqlFragment`SELECT * FROM users WHERE id = ${1}`
+    const fragment = sqlF`SELECT * FROM users WHERE id = ${1}`
     const result = sql`SELECT * FROM (${fragment})`
     assert.equal(
       result.text,
@@ -40,8 +41,8 @@ describe("sql", () => {
   })
 
   it("support more complicated fragment query", () => {
-    const orderBy = sqlFragment`ORDER BY ${"year"} LIMIT ${5}`
-    const where = sqlFragment`WHERE id = ${1} AND title NOT IN (${["Richard D. James album", "Syro"]})`
+    const orderBy = sqlF`ORDER BY ${"year"} LIMIT ${5}`
+    const where = sqlF`WHERE id = ${1} AND title NOT IN (${["Richard D. James album", "Syro"]})`
     const query = sql`
       SELECT * FROM albums
       JOIN artists ON albums.artist_id = artists.id
@@ -64,11 +65,11 @@ describe("sql", () => {
   })
 
   it("supports sql fragments in sql fragments", () => {
-    const fragment = sqlFragment`SELECT * FROM users
+    const fragment = sqlF`SELECT * FROM users
       WHERE id = p.id
-        AND ${sqlFragment`name = ${"Alice"}`} 
+        AND ${sqlF`name = ${"Alice"}`} 
         AND email = ${"alice@company.com"}`
-    const result = sqlFragment`LATERAL JOIN (${fragment})`
+    const result = sqlF`LATERAL JOIN (${fragment})`
     const queryResult = sql`SELECT * FROM projects p ${result}`
     assert.equal(
       normalizeWhitespace(queryResult.text),
@@ -78,18 +79,25 @@ describe("sql", () => {
   })
 
   it("supports joining sql fragments with proper output", () => {
+    const companiesToInsert = [
+      { name: "Apple", address: "1 Infinite Loop" },
+      { name: "Google", address: "1600 Amphitheatre Parkway" },
+      { name: "Microsoft", address: "One Microsoft Way" },
+      { name: "Amazon", address: "410 Terry Ave. North" },
+    ]
+
     const result = sql`
-      INSERT INTO customers (name, address)
-      VALUES ${[
-        sqlFragment`(${["Apple", "1 Infinite Loop"]})`,
-        sqlFragment`(${["Google", "1600 Amphitheatre Parkway"]})`,
-        sqlFragment`(${["Microsodt", "One Microsoft Way"]})`,
-        sqlFragment`(${["Amazon", "410 Terry Ave. North"]})`,
-      ].reduce((a, b) => joinSqlFragments(a, b, ",\n"))}
+      INSERT INTO company (name, address)
+      VALUES ${combineFragments(
+        ",\n",
+        ...companiesToInsert.map(
+          (company) => sqlF`(${[company.name, company.address]})`,
+        ),
+      )}
       `
     assert.equal(
       normalizeWhitespace(result.text),
-      "INSERT INTO customers (name, address) VALUES ($1, $2), ($3, $4), ($5, $6), ($7, $8)",
+      "INSERT INTO company (name, address) VALUES ($1, $2), ($3, $4), ($5, $6), ($7, $8)",
     )
   })
 })

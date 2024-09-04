@@ -52,3 +52,12 @@ export const joinSqlFragments = (
   strings: joinStringArrays(a.strings, b.strings, separator),
   values: a.values.concat(b.values),
 })
+
+export const combineFragments = (
+  separator: string,
+  ...fragments: (SqlFragment | null | undefined)[]
+): SqlFragment => {
+  return fragments
+    .filter((f) => !!f)
+    .reduce((a, b) => joinSqlFragments(a, b, separator))
+}
