@@ -1,5 +1,5 @@
 export interface SqlFragment {
-  __brand: "SqlFragment"
+  __pgLiterallyKind: "SqlFragment"
   strings: readonly string[]
   values: unknown[]
 }
@@ -8,7 +8,7 @@ export const isSqlFragment = (value: unknown): value is SqlFragment => {
   return (
     typeof value === "object" &&
     value !== null &&
-    (value as any).__brand === "SqlFragment"
+    (value as any).__pgLiterallyKind === "SqlFragment"
   )
 }
 
@@ -16,7 +16,7 @@ export const sqlFragment = (
   strings: readonly string[],
   ...values: unknown[]
 ): SqlFragment => ({
-  __brand: "SqlFragment",
+  __pgLiterallyKind: "SqlFragment",
   strings,
   values,
 })
@@ -48,7 +48,7 @@ export const joinSqlFragments = (
   b: SqlFragment,
   separator = "\n",
 ): SqlFragment => ({
-  __brand: "SqlFragment",
+  __pgLiterallyKind: "SqlFragment",
   strings: joinStringArrays(a.strings, b.strings, separator),
   values: a.values.concat(b.values),
 })
