@@ -99,5 +99,15 @@ describe("sql", () => {
       normalizeWhitespace(result.text),
       "INSERT INTO company (name, address) VALUES ($1, $2), ($3, $4), ($5, $6), ($7, $8)",
     )
+    assert.deepEqual(result.values, [
+      "Apple",
+      "1 Infinite Loop",
+      "Google",
+      "1600 Amphitheatre Parkway",
+      "Microsoft",
+      "One Microsoft Way",
+      "Amazon",
+      "410 Terry Ave. North",
+    ])
   })
 })
