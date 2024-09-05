@@ -4,6 +4,11 @@
   "description": "SQL template tags and fragments for PostgreSQL",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "homepage": "https://github.com/jliuhtonen/pg-literally",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jliuhtonen/pg-literally.git"
+  },
   "files": [
     "dist"
   ],
