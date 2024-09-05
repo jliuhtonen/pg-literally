@@ -22,8 +22,15 @@ const query = sql`
   WHERE name = ${name}
   AND age = ${age}
 `
+```
 
-console.log(query) // { text: 'SELECT * FROM users WHERE name = $1 AND age = $2', values: ['Gandalf', 24000] }
+Result:
+
+```json
+{
+  "text": "SELECT * FROM characters WHERE name = $1 AND age = $2",
+  "values": ["Gandalf", 24000]
+}
 ```
 
 Here are some examples of how you can use the `query` with `node-pg` or `pg-promise`:
@@ -136,8 +143,15 @@ const query = sql`
   FROM characters
   WHERE ${combinedFragment}
 `
+```
 
-console.log(query) // { text: 'SELECT * FROM characters WHERE name = $1\nAND age = $2', values: ['Gandalf', 24000] }
+Result:
+
+```json
+{
+  "text": "SELECT * FROM characters WHERE name = $1\nAND age = $2",
+  "values": ["Gandalf", 24000]
+}
 ```
 
 ### `combineFragments`
@@ -163,6 +177,22 @@ const result = sql`
     ),
   )}
 `
+```
 
-console.log(result) // { text: 'INSERT INTO company (name, address) VALUES ($1, $2),\n($3, $4),\n($5, $6),\n($7, $8)', values: ['Apple', '1 Infinite Loop', 'Google', '1600 Amphitheatre Parkway', 'Microsoft', 'One Microsoft Way', 'Amazon', '410 Terry Ave. North'] }
+Result:
+
+```json
+{
+  "text": "INSERT INTO company (name, address) VALUES ($1, $2),\n($3, $4),\n($5, $6),\n($7, $8)",
+  "values": [
+    "Apple",
+    "1 Infinite Loop",
+    "Google",
+    "1600 Amphitheatre Parkway",
+    "Microsoft",
+    "One Microsoft Way",
+    "Amazon",
+    "410 Terry Ave. North"
+  ]
+}
 ```
