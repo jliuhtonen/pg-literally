@@ -30,7 +30,7 @@
   "author": "Janne Liuhtonen",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^22.5.1",
+    "@types/node": "^24.0.1",
     "prettier": "^3.3.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.2"
